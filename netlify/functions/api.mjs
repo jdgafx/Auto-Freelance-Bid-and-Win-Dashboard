@@ -117,13 +117,23 @@ export default async (req) => {
       const res = await orgoFetch(`/computers/${vmId}/screenshot`)
       const data = await res.json()
       if (data.image) {
+        // Orgo returns a URL to the screenshot image
+        if (data.image.startsWith('http')) {
+          const imgRes = await fetch(data.image)
+          const imgBytes = await imgRes.arrayBuffer()
+          return new Response(imgBytes, {
+            headers: {
+              ...headers,
+              'Content-Type': imgRes.headers.get('Content-Type') || 'image/jpeg',
+              'Cache-Control': 'no-cache',
+            },
+          })
+        }
+        // Legacy: base64 encoded
         const b64 = data.image.includes(',') ? data.image.split(',')[1] : data.image
         const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0))
         return new Response(bytes, {
-          headers: {
-            ...headers,
-            'Content-Type': 'image/png',
-          },
+          headers: { ...headers, 'Content-Type': 'image/png' },
         })
       }
       return new Response(JSON.stringify({ error: 'No screenshot data' }), { status: 500, headers })
