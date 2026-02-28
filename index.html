@@ -6,40 +6,46 @@
   <title>FreelanceAutopilot // Mission Control</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Orbitron:wght@400;500;600;700;800;900&family=VT323&display=swap" rel="stylesheet">
   <style>
     :root {
       --neon: #00ff88;
       --neon-dim: #00cc6a;
+      --neon-faint: #00ff8810;
       --neon-glow: rgba(0, 255, 136, 0.15);
-      --neon-glow-strong: rgba(0, 255, 136, 0.35);
+      --neon-glow-strong: rgba(0, 255, 136, 0.4);
       --amber: #ffaa00;
+      --amber-dim: #cc8800;
       --cyan: #00d4ff;
+      --cyan-dim: #0099bb;
       --red: #ff3355;
       --red-dim: #cc2244;
-      --bg-void: #050508;
-      --bg-deep: #0a0a10;
-      --bg-panel: #0d0d16;
-      --bg-card: #10101c;
-      --bg-elevated: #14142a;
-      --border: #1a1a30;
-      --border-bright: #252545;
+      --magenta: #ff44aa;
+      --bg-void: #030306;
+      --bg-deep: #080810;
+      --bg-panel: #0b0b14;
+      --bg-card: #0e0e1a;
+      --bg-elevated: #121222;
+      --border: #151528;
+      --border-bright: #1e1e3a;
+      --border-active: #2a2a50;
       --text: #c8c8d8;
       --text-dim: #666680;
-      --text-muted: #44445a;
+      --text-muted: #3a3a52;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'IBM Plex Mono', 'Fira Code', monospace;
+      font-family: 'IBM Plex Mono', monospace;
       background: var(--bg-void);
       color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
+      cursor: default;
     }
 
-    /* ── Scanline overlay ── */
+    /* Scanline overlay */
     body::before {
       content: '';
       position: fixed;
@@ -47,84 +53,128 @@
       background: repeating-linear-gradient(
         0deg,
         transparent,
-        transparent 2px,
-        rgba(0, 255, 136, 0.015) 2px,
-        rgba(0, 255, 136, 0.015) 4px
+        transparent 1px,
+        rgba(0, 255, 136, 0.012) 1px,
+        rgba(0, 255, 136, 0.012) 2px
       );
       pointer-events: none;
       z-index: 9999;
     }
 
-    /* ── Grid background ── */
+    /* Perspective grid floor */
     body::after {
       content: '';
       position: fixed;
-      inset: 0;
+      bottom: 0;
+      left: -20%;
+      right: -20%;
+      height: 40vh;
       background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 60px 60px;
-      opacity: 0.08;
+        linear-gradient(rgba(0,255,136,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,0.04) 1px, transparent 1px);
+      background-size: 80px 40px;
+      transform: perspective(300px) rotateX(60deg);
+      transform-origin: bottom center;
       pointer-events: none;
       z-index: 0;
+      mask-image: linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 100%);
     }
 
-    #root {
-      position: relative;
-      z-index: 1;
-    }
+    #root { position: relative; z-index: 1; }
 
-    /* ── Scrollbar ── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-void); }
-    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--neon-dim); }
 
-    /* ── Glow keyframes ── */
+    ::selection { background: var(--neon); color: var(--bg-void); }
+
+    /* Keyframes */
     @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 4px var(--neon), 0 0 8px rgba(0,255,136,0.2); }
-      50% { box-shadow: 0 0 8px var(--neon), 0 0 20px rgba(0,255,136,0.4); }
+      0%, 100% { box-shadow: 0 0 3px var(--neon), 0 0 6px rgba(0,255,136,0.15); }
+      50% { box-shadow: 0 0 6px var(--neon), 0 0 16px rgba(0,255,136,0.35); }
     }
     @keyframes blink-cursor {
       0%, 49% { opacity: 1; }
       50%, 100% { opacity: 0; }
     }
-    @keyframes scan-line {
-      0% { transform: translateY(-100%); }
-      100% { transform: translateY(100vh); }
-    }
     @keyframes fade-in-up {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
     @keyframes text-flicker {
       0%, 100% { opacity: 1; }
       92% { opacity: 1; }
-      93% { opacity: 0.8; }
+      93% { opacity: 0.7; }
       94% { opacity: 1; }
-      96% { opacity: 0.9; }
+      96% { opacity: 0.85; }
       97% { opacity: 1; }
     }
-    @keyframes dot-pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+    @keyframes sweep {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
     }
-    @keyframes monitor-on {
-      0% { opacity: 0; transform: scaleY(0.01); }
-      40% { opacity: 1; transform: scaleY(0.01); }
-      60% { transform: scaleY(1); }
-      100% { opacity: 1; transform: scaleY(1); }
+    @keyframes crt-on {
+      0% { opacity: 0; transform: scaleY(0.005) scaleX(0.8); filter: brightness(30); }
+      30% { opacity: 1; transform: scaleY(0.005) scaleX(0.8); filter: brightness(30); }
+      50% { transform: scaleY(1.1) scaleX(0.9); filter: brightness(2); }
+      70% { transform: scaleY(0.95) scaleX(1); filter: brightness(1.2); }
+      100% { opacity: 1; transform: scaleY(1) scaleX(1); filter: brightness(1); }
     }
-    @keyframes data-stream {
-      from { background-position: 0 0; }
-      to { background-position: 0 100px; }
+    @keyframes ticker-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    @keyframes score-fill { from { stroke-dashoffset: 126; } }
+    @keyframes boot-type {
+      from { width: 0; }
+      to { width: 100%; }
     }
 
-    /* ── Selection ── */
-    ::selection {
-      background: var(--neon);
-      color: var(--bg-void);
+    /* CRT vignette for VM screens */
+    .crt-screen { position: relative; overflow: hidden; }
+    .crt-screen::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.5) 100%);
+      pointer-events: none;
     }
+
+    /* Hover classes */
+    .glow-card { transition: border-color 0.3s, box-shadow 0.3s; }
+    .glow-card:hover {
+      border-color: var(--neon) !important;
+      box-shadow: 0 0 20px rgba(0,255,136,0.08), inset 0 0 20px rgba(0,255,136,0.02);
+    }
+    .glow-card-red:hover {
+      border-color: var(--red) !important;
+      box-shadow: 0 0 20px rgba(255,51,85,0.08);
+    }
+    .data-row { transition: background 0.15s; }
+    .data-row:hover { background: var(--bg-elevated) !important; }
+    .cmd-btn { transition: all 0.2s; cursor: pointer; }
+    .cmd-btn:hover {
+      border-color: var(--neon) !important;
+      color: var(--neon) !important;
+      box-shadow: 0 0 8px rgba(0,255,136,0.15);
+    }
+    .vnc-link { transition: color 0.2s, text-shadow 0.2s; }
+    .vnc-link:hover { color: #fff !important; text-shadow: 0 0 8px var(--cyan); }
+    .refresh-btn { transition: all 0.2s; cursor: pointer; }
+    .refresh-btn:hover {
+      border-color: var(--neon) !important;
+      color: var(--neon) !important;
+      background: rgba(0,255,136,0.05) !important;
+    }
+
+    @media (max-width: 1200px) { .two-col { grid-template-columns: 1fr !important; } }
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(4, 1fr) !important; }
+      .vm-grid { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr) !important; } }
   </style>
 </head>
 <body>
