@@ -3,14 +3,127 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FreelanceAutopilot Dashboard</title>
+  <title>FreelanceAutopilot // Mission Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --neon: #00ff88;
+      --neon-dim: #00cc6a;
+      --neon-glow: rgba(0, 255, 136, 0.15);
+      --neon-glow-strong: rgba(0, 255, 136, 0.35);
+      --amber: #ffaa00;
+      --cyan: #00d4ff;
+      --red: #ff3355;
+      --red-dim: #cc2244;
+      --bg-void: #050508;
+      --bg-deep: #0a0a10;
+      --bg-panel: #0d0d16;
+      --bg-card: #10101c;
+      --bg-elevated: #14142a;
+      --border: #1a1a30;
+      --border-bright: #252545;
+      --text: #c8c8d8;
+      --text-dim: #666680;
+      --text-muted: #44445a;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
-      background: #0a0a0f;
-      color: #e0e0e8;
+      font-family: 'IBM Plex Mono', 'Fira Code', monospace;
+      background: var(--bg-void);
+      color: var(--text);
       min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Scanline overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 136, 0.015) 2px,
+        rgba(0, 255, 136, 0.015) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── Grid background ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #root {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-void); }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--neon-dim); }
+
+    /* ── Glow keyframes ── */
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 4px var(--neon), 0 0 8px rgba(0,255,136,0.2); }
+      50% { box-shadow: 0 0 8px var(--neon), 0 0 20px rgba(0,255,136,0.4); }
+    }
+    @keyframes blink-cursor {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    @keyframes scan-line {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100vh); }
+    }
+    @keyframes fade-in-up {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes text-flicker {
+      0%, 100% { opacity: 1; }
+      92% { opacity: 1; }
+      93% { opacity: 0.8; }
+      94% { opacity: 1; }
+      96% { opacity: 0.9; }
+      97% { opacity: 1; }
+    }
+    @keyframes dot-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    @keyframes monitor-on {
+      0% { opacity: 0; transform: scaleY(0.01); }
+      40% { opacity: 1; transform: scaleY(0.01); }
+      60% { transform: scaleY(1); }
+      100% { opacity: 1; transform: scaleY(1); }
+    }
+    @keyframes data-stream {
+      from { background-position: 0 0; }
+      to { background-position: 0 100px; }
+    }
+
+    /* ── Selection ── */
+    ::selection {
+      background: var(--neon);
+      color: var(--bg-void);
     }
   </style>
 </head>

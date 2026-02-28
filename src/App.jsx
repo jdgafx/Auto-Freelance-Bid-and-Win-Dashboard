@@ -1,196 +1,358 @@
 import { useState, useEffect } from 'react'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787'
+// ─── API ─────────────────────────────────────────────
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
-const styles = {
+// ─── STYLES ──────────────────────────────────────────
+const S = {
   app: {
-    maxWidth: 1400,
+    maxWidth: 1480,
     margin: '0 auto',
-    padding: '24px 16px',
+    padding: '20px 24px 40px',
   },
+
+  // ── HEADER ──
   header: {
-    textAlign: 'center',
-    marginBottom: 32,
-    padding: '24px 0',
-    borderBottom: '1px solid #1a1a2e',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '16px 0 20px',
+    borderBottom: '1px solid var(--border)',
+    marginBottom: 24,
+    position: 'relative',
+  },
+  headerLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+  },
+  logo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+  },
+  logoIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 6,
+    background: 'linear-gradient(135deg, var(--neon) 0%, var(--neon-dim) 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 18,
+    color: 'var(--bg-void)',
+    fontWeight: 900,
+    fontFamily: 'Orbitron, monospace',
+    boxShadow: '0 0 12px rgba(0,255,136,0.3)',
   },
   title: {
-    fontSize: 28,
+    fontFamily: 'Orbitron, monospace',
+    fontSize: 18,
     fontWeight: 700,
-    color: '#00ff88',
-    letterSpacing: 2,
+    color: 'var(--neon)',
+    letterSpacing: 3,
+    textShadow: '0 0 20px rgba(0,255,136,0.3)',
+    animation: 'text-flicker 8s infinite',
   },
   subtitle: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 4,
+    fontFamily: 'IBM Plex Mono, monospace',
+    fontSize: 10,
+    color: 'var(--text-dim)',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginTop: 2,
   },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
     gap: 12,
-    marginBottom: 32,
   },
-  statCard: {
-    background: '#12121f',
-    border: '1px solid #1a1a2e',
-    borderRadius: 8,
-    padding: '16px 14px',
-    textAlign: 'center',
-  },
-  statValue: {
-    fontSize: 28,
-    fontWeight: 700,
-    color: '#00ff88',
-  },
-  statLabel: {
-    fontSize: 11,
-    color: '#666',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginTop: 4,
-  },
-  section: {
-    marginBottom: 28,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 600,
-    color: '#888',
-    marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
+  clock: {
+    fontFamily: 'Orbitron, monospace',
     fontSize: 13,
-  },
-  th: {
-    textAlign: 'left',
-    padding: '10px 12px',
-    borderBottom: '1px solid #1a1a2e',
-    color: '#666',
-    fontSize: 11,
-    textTransform: 'uppercase',
+    color: 'var(--neon-dim)',
     letterSpacing: 1,
-  },
-  td: {
-    padding: '10px 12px',
-    borderBottom: '1px solid #0f0f1a',
-    color: '#c0c0cc',
-  },
-  badge: (color) => ({
-    display: 'inline-block',
-    padding: '2px 8px',
-    borderRadius: 4,
-    fontSize: 11,
-    fontWeight: 600,
-    background: color + '20',
-    color: color,
-  }),
-  loading: {
-    textAlign: 'center',
-    padding: 60,
-    color: '#444',
-  },
-  error: {
-    textAlign: 'center',
-    padding: 40,
-    color: '#ff4444',
-    background: '#1a0000',
-    borderRadius: 8,
-    border: '1px solid #330000',
-    marginBottom: 20,
   },
   refreshBtn: {
-    background: 'none',
-    border: '1px solid #333',
-    color: '#888',
+    background: 'transparent',
+    border: '1px solid var(--border-bright)',
+    color: 'var(--text-dim)',
     padding: '6px 14px',
     borderRadius: 4,
     cursor: 'pointer',
-    fontSize: 12,
-    marginTop: 8,
+    fontSize: 11,
+    fontFamily: 'IBM Plex Mono, monospace',
+    letterSpacing: 1,
+    transition: 'all 0.2s',
   },
-  // VM monitoring styles
-  vmGrid: {
+
+  // ── STATS ──
+  statsRow: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-    gap: 16,
-    marginBottom: 28,
+    gridTemplateColumns: 'repeat(7, 1fr)',
+    gap: 2,
+    marginBottom: 24,
+    background: 'var(--border)',
+    borderRadius: 8,
+    overflow: 'hidden',
+    border: '1px solid var(--border)',
   },
-  vmCard: {
-    background: '#12121f',
-    border: '1px solid #1a1a2e',
-    borderRadius: 10,
+  statCell: {
+    background: 'var(--bg-panel)',
+    padding: '14px 12px',
+    textAlign: 'center',
+    position: 'relative',
+  },
+  statValue: {
+    fontFamily: 'Orbitron, monospace',
+    fontSize: 22,
+    fontWeight: 700,
+    color: 'var(--neon)',
+    textShadow: '0 0 10px rgba(0,255,136,0.2)',
+    lineHeight: 1,
+  },
+  statLabel: {
+    fontSize: 9,
+    color: 'var(--text-muted)',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginTop: 6,
+  },
+
+  // ── SECTION FRAME ──
+  section: {
+    marginBottom: 20,
+    position: 'relative',
+  },
+  sectionHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '10px 16px',
+    background: 'var(--bg-panel)',
+    border: '1px solid var(--border)',
+    borderBottom: 'none',
+    borderRadius: '6px 6px 0 0',
+  },
+  sectionTitle: {
+    fontFamily: 'Orbitron, monospace',
+    fontSize: 11,
+    fontWeight: 600,
+    color: 'var(--text-dim)',
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+  },
+  sectionBadge: {
+    fontSize: 10,
+    color: 'var(--neon)',
+    fontFamily: 'IBM Plex Mono, monospace',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sectionBody: {
+    background: 'var(--bg-deep)',
+    border: '1px solid var(--border)',
+    borderRadius: '0 0 6px 6px',
     overflow: 'hidden',
   },
-  vmHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '12px 16px',
-    borderBottom: '1px solid #1a1a2e',
-  },
-  vmName: {
-    fontSize: 14,
-    fontWeight: 600,
-    color: '#e0e0e8',
-  },
-  vmSpecs: {
-    fontSize: 11,
-    color: '#666',
-    padding: '8px 16px',
-    display: 'flex',
-    gap: 16,
-  },
-  vmScreenshot: {
+
+  // ── TABLE ──
+  table: {
     width: '100%',
-    height: 200,
-    objectFit: 'cover',
-    cursor: 'pointer',
-    background: '#0a0a12',
+    borderCollapse: 'collapse',
+    fontSize: 12,
+    fontFamily: 'IBM Plex Mono, monospace',
   },
-  vmActions: {
-    padding: '8px 16px',
+  th: {
+    textAlign: 'left',
+    padding: '10px 14px',
+    borderBottom: '1px solid var(--border)',
+    color: 'var(--text-muted)',
+    fontSize: 9,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    fontWeight: 500,
+  },
+  td: {
+    padding: '9px 14px',
+    borderBottom: '1px solid rgba(26,26,48,0.5)',
+    color: 'var(--text)',
+    transition: 'background 0.15s',
+  },
+  tr: {
+    transition: 'background 0.15s',
+  },
+
+  // ── BADGE ──
+  badge: (color) => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
+    padding: '2px 10px',
+    borderRadius: 3,
+    fontSize: 10,
+    fontWeight: 600,
+    fontFamily: 'IBM Plex Mono, monospace',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    background: color + '12',
+    color: color,
+    border: `1px solid ${color}30`,
+    boxShadow: `0 0 8px ${color}15`,
+  }),
+
+  // ── VM FLEET ──
+  vmGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+    gap: 16,
+    padding: 16,
+  },
+  vmCard: {
+    background: 'var(--bg-card)',
+    borderRadius: 8,
+    overflow: 'hidden',
+    border: '1px solid var(--border)',
+    transition: 'border-color 0.3s, box-shadow 0.3s',
+    animation: 'fade-in-up 0.4s ease-out both',
+  },
+  vmBezel: {
+    background: 'linear-gradient(180deg, #1a1a30 0%, #12122a 100%)',
+    padding: '8px 14px',
     display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottom: '2px solid var(--border)',
+  },
+  vmBezelLeft: {
+    display: 'flex',
+    alignItems: 'center',
     gap: 8,
   },
+  vmBezelDots: {
+    display: 'flex',
+    gap: 4,
+  },
+  vmDot: (color) => ({
+    width: 7,
+    height: 7,
+    borderRadius: '50%',
+    background: color,
+    boxShadow: `0 0 4px ${color}`,
+  }),
+  vmName: {
+    fontSize: 12,
+    fontWeight: 600,
+    color: 'var(--text)',
+    fontFamily: 'IBM Plex Mono, monospace',
+  },
+  vmScreen: {
+    width: '100%',
+    height: 180,
+    objectFit: 'cover',
+    cursor: 'pointer',
+    background: 'var(--bg-void)',
+    display: 'block',
+  },
+  vmScreenPlaceholder: {
+    width: '100%',
+    height: 180,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--bg-void)',
+    cursor: 'pointer',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  vmSpecs: {
+    fontSize: 10,
+    color: 'var(--text-muted)',
+    padding: '8px 14px',
+    display: 'flex',
+    gap: 16,
+    borderTop: '1px solid var(--border)',
+    fontFamily: 'IBM Plex Mono, monospace',
+  },
+  vmActions: {
+    padding: '8px 14px',
+    display: 'flex',
+    gap: 8,
+    borderTop: '1px solid var(--border)',
+  },
   vmBtn: {
-    background: 'none',
-    border: '1px solid #333',
-    color: '#888',
-    padding: '4px 10px',
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--border-bright)',
+    color: 'var(--text-dim)',
+    padding: '5px 12px',
     borderRadius: 4,
     cursor: 'pointer',
-    fontSize: 11,
+    fontSize: 10,
+    fontFamily: 'IBM Plex Mono, monospace',
+    letterSpacing: 1,
+    transition: 'all 0.2s',
   },
   vmLink: {
-    color: '#4488ff',
-    fontSize: 11,
+    color: 'var(--cyan)',
+    fontSize: 10,
     textDecoration: 'none',
-    padding: '4px 10px',
+    padding: '5px 12px',
+    fontFamily: 'IBM Plex Mono, monospace',
+    letterSpacing: 1,
+    transition: 'color 0.2s',
   },
-  pulseGreen: {
-    display: 'inline-block',
-    width: 8,
-    height: 8,
-    borderRadius: '50%',
-    background: '#00ff88',
-    marginRight: 6,
-    boxShadow: '0 0 6px #00ff88',
+
+  // ── MISC ──
+  error: {
+    padding: '16px 20px',
+    background: 'rgba(255,51,85,0.06)',
+    border: '1px solid rgba(255,51,85,0.2)',
+    borderRadius: 6,
+    marginBottom: 20,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
   },
-  pulseRed: {
-    display: 'inline-block',
-    width: 8,
-    height: 8,
-    borderRadius: '50%',
-    background: '#ff4444',
-    marginRight: 6,
+  errorText: {
+    color: 'var(--red)',
+    fontSize: 12,
+    fontFamily: 'IBM Plex Mono, monospace',
+  },
+  loading: {
+    textAlign: 'center',
+    padding: 48,
+    color: 'var(--text-muted)',
+    fontSize: 12,
+  },
+  empty: {
+    textAlign: 'center',
+    padding: '32px 20px',
+    color: 'var(--text-muted)',
+    fontSize: 11,
+    letterSpacing: 1,
+  },
+  footer: {
+    textAlign: 'center',
+    color: 'var(--text-muted)',
+    fontSize: 9,
+    padding: '20px 0',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    borderTop: '1px solid var(--border)',
+    marginTop: 20,
+  },
+
+  // ── LAYOUT ──
+  twoCol: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 20,
   },
 }
 
+// ─── STATUS COLORS ───────────────────────────────────
 const statusColors = {
   discovered: '#4488ff',
   scored: '#ffaa00',
@@ -198,19 +360,55 @@ const statusColors = {
   bid: '#ff6600',
   won: '#00ff88',
   delivered: '#00cc66',
-  rejected: '#ff4444',
+  rejected: '#ff3355',
   lost: '#cc3333',
   pending: '#ffaa00',
   submitted: '#4488ff',
   awarded: '#00ff88',
   in_progress: '#ffaa00',
   running: '#00ff88',
-  stopped: '#ff4444',
+  stopped: '#ff3355',
 }
 
+// ─── COMPONENTS ──────────────────────────────────────
+
 function Badge({ status }) {
-  const color = statusColors[status] || '#666'
-  return <span style={styles.badge(color)}>{status}</span>
+  const color = statusColors[status] || '#666680'
+  return (
+    <span style={S.badge(color)}>
+      <span style={{
+        width: 5, height: 5, borderRadius: '50%',
+        background: color, boxShadow: `0 0 4px ${color}`,
+      }} />
+      {status?.replace(/_/g, ' ')}
+    </span>
+  )
+}
+
+function PulseDot({ active }) {
+  return (
+    <span style={{
+      display: 'inline-block',
+      width: 8, height: 8, borderRadius: '50%',
+      background: active ? 'var(--neon)' : 'var(--red)',
+      boxShadow: active ? '0 0 8px var(--neon), 0 0 16px rgba(0,255,136,0.3)' : '0 0 4px var(--red)',
+      animation: active ? 'pulse-glow 2s infinite' : 'none',
+    }} />
+  )
+}
+
+function SectionFrame({ title, badge, children }) {
+  return (
+    <div style={S.section}>
+      <div style={S.sectionHeader}>
+        <span style={S.sectionTitle}>{title}</span>
+        {badge && <span style={S.sectionBadge}>{badge}</span>}
+      </div>
+      <div style={S.sectionBody}>
+        {children}
+      </div>
+    </div>
+  )
 }
 
 function useFetch(endpoint) {
@@ -221,7 +419,10 @@ function useFetch(endpoint) {
   const refetch = () => {
     setLoading(true)
     fetch(`${API_BASE}${endpoint}`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
       .then(d => { setData(d); setError(null) })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
@@ -231,71 +432,122 @@ function useFetch(endpoint) {
   return { data, error, loading, refetch }
 }
 
-function VMCard({ vm }) {
+function useClock() {
+  const [time, setTime] = useState(new Date())
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  return time.toLocaleTimeString('en-US', { hour12: false }) +
+    '.' + String(time.getMilliseconds()).padStart(3, '0').slice(0, 2)
+}
+
+// ─── VM CARD ─────────────────────────────────────────
+
+function VMCard({ vm, index }) {
   const [screenshotUrl, setScreenshotUrl] = useState(null)
-  const [screenshotLoading, setScreenshotLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const takeScreenshot = () => {
-    setScreenshotLoading(true)
+    setLoading(true)
     fetch(`${API_BASE}/api/vms/${vm.id}/screenshot`)
       .then(r => r.blob())
       .then(blob => {
         setScreenshotUrl(URL.createObjectURL(blob))
-        setScreenshotLoading(false)
+        setLoading(false)
       })
-      .catch(() => setScreenshotLoading(false))
+      .catch(() => setLoading(false))
   }
 
+  const isRunning = vm.status === 'running'
+
   return (
-    <div style={styles.vmCard}>
-      <div style={styles.vmHeader}>
-        <div style={styles.vmName}>
-          <span style={vm.status === 'running' ? styles.pulseGreen : styles.pulseRed} />
-          {vm.name}
+    <div style={{
+      ...S.vmCard,
+      animationDelay: `${index * 80}ms`,
+    }}
+    onMouseEnter={e => {
+      e.currentTarget.style.borderColor = isRunning ? 'var(--neon)' : 'var(--red)'
+      e.currentTarget.style.boxShadow = isRunning
+        ? '0 0 20px rgba(0,255,136,0.1)' : '0 0 20px rgba(255,51,85,0.1)'
+    }}
+    onMouseLeave={e => {
+      e.currentTarget.style.borderColor = 'var(--border)'
+      e.currentTarget.style.boxShadow = 'none'
+    }}>
+      {/* Monitor bezel top */}
+      <div style={S.vmBezel}>
+        <div style={S.vmBezelLeft}>
+          <div style={S.vmBezelDots}>
+            <span style={S.vmDot(isRunning ? '#00ff88' : '#ff3355')} />
+            <span style={S.vmDot(isRunning ? '#ffaa00' : '#44445a')} />
+            <span style={S.vmDot(isRunning ? '#00d4ff' : '#44445a')} />
+          </div>
+          <span style={S.vmName}>{vm.name}</span>
         </div>
         <Badge status={vm.status} />
       </div>
-      <div style={styles.vmSpecs}>
-        <span>CPU: {vm.cpu}</span>
-        <span>RAM: {vm.ram}GB</span>
-        <span>WS: {vm.workspace}</span>
-      </div>
+
+      {/* Screen area */}
       {screenshotUrl ? (
         <img
           src={screenshotUrl}
-          alt={`${vm.name} screenshot`}
-          style={styles.vmScreenshot}
+          alt={`${vm.name}`}
+          style={S.vmScreen}
           onClick={takeScreenshot}
-          title="Click to refresh screenshot"
+          title="Click to refresh"
         />
       ) : (
-        <div
-          style={{...styles.vmScreenshot, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#333', fontSize: 12}}
-          onClick={takeScreenshot}
-        >
-          {screenshotLoading ? 'Loading...' : 'Click to capture screenshot'}
+        <div style={S.vmScreenPlaceholder} onClick={takeScreenshot}>
+          {/* CRT noise pattern */}
+          <div style={{
+            position: 'absolute', inset: 0, opacity: 0.03,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")`,
+          }} />
+          <span style={{ color: 'var(--text-muted)', fontSize: 10, letterSpacing: 2, zIndex: 1 }}>
+            {loading ? '[ CAPTURING... ]' : '[ CLICK TO CAPTURE ]'}
+          </span>
+          <span style={{
+            color: 'var(--text-muted)', fontSize: 9, marginTop: 6,
+            opacity: 0.5, zIndex: 1,
+          }}>
+            {vm.id.slice(0, 12)}
+          </span>
         </div>
       )}
-      <div style={styles.vmActions}>
-        <button style={styles.vmBtn} onClick={takeScreenshot}>
-          {screenshotLoading ? '...' : 'Screenshot'}
+
+      {/* Specs bar */}
+      <div style={S.vmSpecs}>
+        <span>CPU <span style={{ color: 'var(--cyan)' }}>{vm.cpu}</span></span>
+        <span>RAM <span style={{ color: 'var(--cyan)' }}>{vm.ram}GB</span></span>
+        <span>WS <span style={{ color: 'var(--text-dim)' }}>{vm.workspace}</span></span>
+      </div>
+
+      {/* Actions */}
+      <div style={S.vmActions}>
+        <button style={S.vmBtn} onClick={takeScreenshot}
+          onMouseEnter={e => { e.target.style.borderColor = 'var(--neon)'; e.target.style.color = 'var(--neon)' }}
+          onMouseLeave={e => { e.target.style.borderColor = 'var(--border-bright)'; e.target.style.color = 'var(--text-dim)' }}>
+          {loading ? '...' : 'CAPTURE'}
         </button>
-        <a href={vm.url} target="_blank" rel="noopener noreferrer" style={styles.vmLink}>
-          Open VNC
+        <a href={vm.url} target="_blank" rel="noopener noreferrer" style={S.vmLink}
+          onMouseEnter={e => e.target.style.color = '#fff'}
+          onMouseLeave={e => e.target.style.color = 'var(--cyan)'}>
+          OPEN VNC &rarr;
         </a>
-        <span style={{...styles.vmLink, color: '#666'}}>
-          {vm.id.slice(0, 8)}
-        </span>
       </div>
     </div>
   )
 }
+
+// ─── MAIN APP ────────────────────────────────────────
 
 export default function App() {
   const stats = useFetch('/api/stats')
   const jobs = useFetch('/api/jobs')
   const bids = useFetch('/api/bids')
   const vms = useFetch('/api/vms')
+  const clock = useClock()
 
   const refreshAll = () => {
     stats.refetch()
@@ -309,142 +561,251 @@ export default function App() {
     return () => clearInterval(interval)
   }, [])
 
+  const vmList = Array.isArray(vms.data) ? vms.data : []
+  const runningCount = vmList.filter(v => v.status === 'running').length
+
   return (
-    <div style={styles.app}>
-      <header style={styles.header}>
-        <h1 style={styles.title}>FREELANCE AUTOPILOT</h1>
-        <p style={styles.subtitle}>AI-Powered Acquisition Pipeline + VM Fleet</p>
-        <button style={styles.refreshBtn} onClick={refreshAll}>Refresh All</button>
+    <div style={S.app}>
+      {/* ── HEADER ── */}
+      <header style={S.header}>
+        <div style={S.headerLeft}>
+          <div style={S.logo}>
+            <div style={S.logoIcon}>FA</div>
+            <div>
+              <div style={S.title}>FREELANCE AUTOPILOT</div>
+              <div style={S.subtitle}>Autonomous Acquisition Pipeline</div>
+            </div>
+          </div>
+        </div>
+        <div style={S.headerRight}>
+          <span style={S.clock}>{clock}</span>
+          <button style={S.refreshBtn} onClick={refreshAll}
+            onMouseEnter={e => { e.target.style.borderColor = 'var(--neon)'; e.target.style.color = 'var(--neon)' }}
+            onMouseLeave={e => { e.target.style.borderColor = 'var(--border-bright)'; e.target.style.color = 'var(--text-dim)' }}>
+            REFRESH
+          </button>
+        </div>
       </header>
 
+      {/* ── ERROR ── */}
       {stats.error && (
-        <div style={styles.error}>
-          API unreachable: {stats.error}<br/>
-          <small>Ensure api_server.py is running at {API_BASE}</small>
+        <div style={S.error}>
+          <span style={{ fontSize: 18 }}>&#9888;</span>
+          <div style={S.errorText}>
+            LINK DOWN: {stats.error}
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+              API endpoint unreachable &mdash; check deployment
+            </div>
+          </div>
         </div>
       )}
 
+      {/* ── STATS BAR ── */}
       {stats.data && (
-        <div style={styles.statsGrid}>
-          <StatCard value={stats.data.jobs_discovered} label="Jobs Found" />
-          <StatCard value={stats.data.jobs_scored} label="Jobs Scored" />
-          <StatCard value={stats.data.bids_submitted} label="Bids Sent" />
-          <StatCard value={stats.data.bids_won} label="Bids Won" />
-          <StatCard value={`${stats.data.win_rate}%`} label="Win Rate" />
-          <StatCard value={stats.data.active_projects} label="Active" />
-          <StatCard value={`$${stats.data.total_revenue.toLocaleString()}`} label="Revenue" />
+        <div style={S.statsRow}>
+          <StatCell value={stats.data.jobs_discovered} label="DISCOVERED" />
+          <StatCell value={stats.data.jobs_scored} label="SCORED" />
+          <StatCell value={stats.data.bids_submitted} label="BIDS SENT" />
+          <StatCell value={stats.data.bids_won} label="WINS" accent />
+          <StatCell value={`${stats.data.win_rate}%`} label="WIN RATE"
+            color={stats.data.win_rate >= 30 ? 'var(--neon)' : 'var(--amber)'} />
+          <StatCell value={stats.data.active_projects} label="ACTIVE" />
+          <StatCell value={`$${Number(stats.data.total_revenue).toLocaleString()}`}
+            label="REVENUE" accent />
         </div>
       )}
 
-      {/* Bird's Eye VM Fleet */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>
-          Orgo VM Fleet
-          {vms.data && Array.isArray(vms.data) && (
-            <span style={{color: '#00ff88', fontSize: 12, marginLeft: 8}}>
-              {vms.data.filter(v => v.status === 'running').length} running
+      {/* ── VM FLEET ── */}
+      <SectionFrame
+        title="ORGO VM FLEET"
+        badge={vmList.length > 0 ? (
+          <>
+            <PulseDot active={runningCount > 0} />
+            <span>{runningCount} ONLINE / {vmList.length} TOTAL</span>
+          </>
+        ) : null}
+      >
+        {vmList.length > 0 ? (
+          <div style={S.vmGrid}>
+            {vmList.map((vm, i) => <VMCard key={vm.id} vm={vm} index={i} />)}
+          </div>
+        ) : (
+          <div style={S.empty}>
+            <span style={{ color: 'var(--text-muted)' }}>
+              NO ACTIVE INSTANCES &mdash; DEPLOY WITH: <span style={{ color: 'var(--cyan)' }}>python deploy_cloud.py</span>
             </span>
-          )}
-        </h2>
-        {vms.data && Array.isArray(vms.data) ? (
-          vms.data.length > 0 ? (
-            <div style={styles.vmGrid}>
-              {vms.data.map(vm => <VMCard key={vm.id} vm={vm} />)}
+          </div>
+        )}
+      </SectionFrame>
+
+      {/* ── TWO-COLUMN: JOBS + BIDS ── */}
+      <div style={S.twoCol}>
+        {/* ── JOBS ── */}
+        <SectionFrame
+          title="RECENT JOBS"
+          badge={jobs.data ? `${jobs.data.length} RECORDS` : null}
+        >
+          {jobs.loading ? (
+            <div style={S.loading}>LOADING<span style={{ animation: 'blink-cursor 1s infinite' }}>_</span></div>
+          ) : jobs.data && jobs.data.length > 0 ? (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={S.table}>
+                <thead>
+                  <tr>
+                    <th style={S.th}>Platform</th>
+                    <th style={S.th}>Title</th>
+                    <th style={S.th}>Score</th>
+                    <th style={S.th}>Status</th>
+                    <th style={S.th}>Found</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {jobs.data.slice(0, 20).map((job, i) => (
+                    <tr key={job.id} style={{
+                      ...S.tr,
+                      animation: `fade-in-up 0.3s ease-out ${i * 30}ms both`,
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <td style={S.td}>
+                        <span style={{
+                          color: 'var(--cyan)', fontSize: 10,
+                          textTransform: 'uppercase', letterSpacing: 1,
+                        }}>{job.platform}</span>
+                      </td>
+                      <td style={{ ...S.td, maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {job.title || '—'}
+                      </td>
+                      <td style={S.td}>
+                        <ScoreBar score={job.score} />
+                      </td>
+                      <td style={S.td}><Badge status={job.status} /></td>
+                      <td style={{ ...S.td, color: 'var(--text-muted)', fontSize: 10 }}>
+                        {timeAgo(job.discovered_at)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : (
-            <p style={{color: '#444', fontSize: 13}}>No VMs running. Deploy with: python deploy_cloud.py</p>
-          )
-        ) : null}
+            <div style={S.empty}>NO JOBS DISCOVERED — START ORCHESTRATOR</div>
+          )}
+        </SectionFrame>
+
+        {/* ── BIDS ── */}
+        <SectionFrame
+          title="RECENT BIDS"
+          badge={bids.data ? `${bids.data.length} RECORDS` : null}
+        >
+          {bids.loading ? (
+            <div style={S.loading}>LOADING<span style={{ animation: 'blink-cursor 1s infinite' }}>_</span></div>
+          ) : bids.data && bids.data.length > 0 ? (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={S.table}>
+                <thead>
+                  <tr>
+                    <th style={S.th}>Platform</th>
+                    <th style={S.th}>Job</th>
+                    <th style={S.th}>Amount</th>
+                    <th style={S.th}>Score</th>
+                    <th style={S.th}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bids.data.slice(0, 15).map((bid, i) => (
+                    <tr key={bid.id} style={{
+                      ...S.tr,
+                      animation: `fade-in-up 0.3s ease-out ${i * 30}ms both`,
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <td style={S.td}>
+                        <span style={{
+                          color: 'var(--cyan)', fontSize: 10,
+                          textTransform: 'uppercase', letterSpacing: 1,
+                        }}>{bid.platform}</span>
+                      </td>
+                      <td style={{ ...S.td, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {bid.title || '—'}
+                      </td>
+                      <td style={S.td}>
+                        <span style={{ color: 'var(--neon)', fontFamily: 'Orbitron, monospace', fontSize: 12 }}>
+                          ${bid.bid_amount}
+                        </span>
+                      </td>
+                      <td style={S.td}>
+                        <ScoreBar score={bid.score} />
+                      </td>
+                      <td style={S.td}><Badge status={bid.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div style={S.empty}>NO BIDS SUBMITTED</div>
+          )}
+        </SectionFrame>
       </div>
 
-      {/* Jobs Table */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Recent Jobs</h2>
-        {jobs.loading ? (
-          <p style={styles.loading}>Loading...</p>
-        ) : jobs.data && jobs.data.length > 0 ? (
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Platform</th>
-                <th style={styles.th}>Title</th>
-                <th style={styles.th}>Score</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}>Found</th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobs.data.slice(0, 20).map(job => (
-                <tr key={job.id}>
-                  <td style={styles.td}>{job.platform}</td>
-                  <td style={styles.td}>{(job.title || '').slice(0, 60)}</td>
-                  <td style={styles.td}>{job.score ?? '-'}</td>
-                  <td style={styles.td}><Badge status={job.status} /></td>
-                  <td style={styles.td}>{timeAgo(job.discovered_at)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p style={{color: '#444', fontSize: 13}}>No jobs discovered yet. Start the orchestrator.</p>
-        )}
-      </div>
-
-      {/* Bids Table */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Recent Bids</h2>
-        {bids.loading ? (
-          <p style={styles.loading}>Loading...</p>
-        ) : bids.data && bids.data.length > 0 ? (
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Platform</th>
-                <th style={styles.th}>Job</th>
-                <th style={styles.th}>Amount</th>
-                <th style={styles.th}>Score</th>
-                <th style={styles.th}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bids.data.slice(0, 15).map(bid => (
-                <tr key={bid.id}>
-                  <td style={styles.td}>{bid.platform}</td>
-                  <td style={styles.td}>{(bid.title || '').slice(0, 50)}</td>
-                  <td style={styles.td}>${bid.bid_amount}</td>
-                  <td style={styles.td}>{bid.score ?? '-'}</td>
-                  <td style={styles.td}><Badge status={bid.status} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p style={{color: '#444', fontSize: 13}}>No bids submitted yet.</p>
-        )}
-      </div>
-
-      <footer style={{ textAlign: 'center', color: '#333', fontSize: 11, padding: 20 }}>
-        FreelanceAutopilot v1.0 &middot; Built with Claude Code
+      {/* ── FOOTER ── */}
+      <footer style={S.footer}>
+        FreelanceAutopilot v1.0 &middot; Autonomous Pipeline &middot; Built with Claude Code
       </footer>
     </div>
   )
 }
 
-function StatCard({ value, label }) {
+// ─── STAT CELL ───────────────────────────────────────
+
+function StatCell({ value, label, accent, color }) {
   return (
-    <div style={styles.statCard}>
-      <div style={styles.statValue}>{value}</div>
-      <div style={styles.statLabel}>{label}</div>
+    <div style={S.statCell}>
+      <div style={{
+        ...S.statValue,
+        color: color || (accent ? 'var(--neon)' : 'var(--text)'),
+        textShadow: accent ? '0 0 12px rgba(0,255,136,0.3)' : 'none',
+      }}>{value}</div>
+      <div style={S.statLabel}>{label}</div>
     </div>
   )
 }
 
+// ─── SCORE BAR ───────────────────────────────────────
+
+function ScoreBar({ score }) {
+  if (score == null) return <span style={{ color: 'var(--text-muted)' }}>—</span>
+  const pct = Math.min(score, 100)
+  const color = pct >= 80 ? 'var(--neon)' : pct >= 60 ? 'var(--amber)' : 'var(--red)'
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{
+        width: 40, height: 4, background: 'var(--bg-void)',
+        borderRadius: 2, overflow: 'hidden',
+      }}>
+        <div style={{
+          width: `${pct}%`, height: '100%', background: color,
+          borderRadius: 2, boxShadow: `0 0 4px ${color}`,
+          transition: 'width 0.6s ease-out',
+        }} />
+      </div>
+      <span style={{ fontSize: 11, color, fontFamily: 'Orbitron, monospace', fontWeight: 600 }}>
+        {score}
+      </span>
+    </div>
+  )
+}
+
+// ─── HELPERS ─────────────────────────────────────────
+
 function timeAgo(dateStr) {
-  if (!dateStr) return '-'
+  if (!dateStr) return '—'
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 1) return 'now'
+  if (mins < 60) return `${mins}m`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  return `${Math.floor(hrs / 24)}d ago`
+  if (hrs < 24) return `${hrs}h`
+  return `${Math.floor(hrs / 24)}d`
 }
