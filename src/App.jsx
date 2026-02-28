@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
-// ─── API ─────────────────────────────────────────────
-const API_BASE = import.meta.env.VITE_API_URL || ''
+// ─── API (same-origin Netlify Functions) ─────────────
+const API_BASE = ''
 
 // ─── STYLES ──────────────────────────────────────────
 const S = {
