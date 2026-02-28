@@ -573,7 +573,7 @@ export default function App() {
             <div style={S.logoIcon}>FA</div>
             <div>
               <div style={S.title}>FREELANCE AUTOPILOT</div>
-              <div style={S.subtitle}>Autonomous Acquisition Pipeline</div>
+              <div style={S.subtitle}>Autonomous Acquisition Pipeline &mdash; by NewDawn AI</div>
             </div>
           </div>
         </div>
@@ -751,7 +751,10 @@ export default function App() {
 
       {/* ── FOOTER ── */}
       <footer style={S.footer}>
-        FreelanceAutopilot v1.0 &middot; Autonomous Pipeline &middot; Built with Claude Code
+        <div>FreelanceAutopilot v1.0 &middot; Autonomous Acquisition Pipeline</div>
+        <div style={{ marginTop: 6, color: 'var(--neon-dim)', fontSize: 10 }}>
+          Built by <span style={{ color: 'var(--neon)' }}>Chris Gentile</span> / CGDarkstardev1 / <span style={{ color: 'var(--neon)' }}>NewDawn AI</span>
+        </div>
       </footer>
     </div>
   )
